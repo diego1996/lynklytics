@@ -12,7 +12,8 @@ dependencies = [
     "pyyaml (>=6.0.2,<7.0.0)",
     "ua-parser (>=1.0.1,<2.0.0)",
     "user-agents (>=2.2.0,<3.0.0)",
-    "whitenoise (>=6.9.0,<7.0.0)"
+    "whitenoise (>=6.9.0,<7.0.0)",
+    "gunicorn (>=23.0.0,<24.0.0)"
 ]
 
 
