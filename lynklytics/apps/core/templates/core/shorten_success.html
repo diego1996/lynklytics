@@ -1,0 +1,86 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Enlace Acortado - Lynklytics{% endblock %}
+
+{% block extra_css %}
+<!-- QR Code Generator -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Contenedor Principal con más margen superior -->
+<div class="bg-white shadow-2xl rounded-xl p-12 w-full max-w-3xl text-center transform transition hover:scale-105 fade-in mt-16">
+    <h1 class="text-4xl font-extrabold text-gray-800 mb-6">¡Listo! 🎉</h1>
+    <p class="text-gray-600 text-lg mb-8">Tu enlace acortado es:</p>
+
+    <!-- Enlace Acortado -->
+    <div class="bg-gray-100 rounded-lg p-6 mb-8 shadow-lg flex flex-col items-center">
+        <a href="{{ scheme }}://{{ short_domain }}/{{ link.short_code }}/" target="_blank"
+           class="text-blue-600 text-lg font-semibold hover:underline">
+            {{ scheme }}://{{ short_domain }}/{{ link.short_code }}/
+        </a>
+
+        <!-- Botones -->
+        <div class="flex flex-wrap justify-center gap-6 mt-6">
+            <button onclick="copyToClipboard()"
+                    class="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md">
+                📋 Copiar
+            </button>
+
+            <button onclick="downloadQR()"
+                    class="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md">
+                📥 Descargar QR
+            </button>
+        </div>
+    </div>
+
+    <!-- Sección de Código QR -->
+    <p class="text-gray-600 text-lg mb-6">Escanea el código QR:</p>
+    <div class="flex justify-center">
+        <div id="qrcode" class="bg-gray-200 p-6 rounded-lg shadow-lg"></div>
+    </div>
+
+    <!-- Botón para acortar otro enlace con más separación -->
+    <a href="{% url 'shorten_url' %}"
+       class="mt-8 inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition">
+        🔄 Acortar otro enlace
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function copyToClipboard() {
+        const tempInput = document.createElement("input");
+        tempInput.value = "{{ scheme }}://{{ short_domain }}/{{ link.short_code }}/";
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+
+        alert("¡Enlace copiado al portapapeles! ✅");
+    }
+
+    function generateQR() {
+        const qrContainer = document.getElementById("qrcode");
+        qrContainer.innerHTML = "";
+
+        const shortUrl = "{{ scheme }}://{{ short_domain }}/{{ link.short_code }}/";
+        new QRCode(qrContainer, {
+            text: shortUrl,
+            width: 150,
+            height: 150
+        });
+    }
+
+    function downloadQR() {
+        const qrCanvas = document.querySelector("#qrcode canvas");
+        const qrLink = document.createElement("a");
+        qrLink.href = qrCanvas.toDataURL("image/png");
+        qrLink.download = "QR_Code_Lynklytics.png";
+        qrLink.click();
+    }
+
+    document.addEventListener("DOMContentLoaded", generateQR);
+</script>
+{% endblock %}

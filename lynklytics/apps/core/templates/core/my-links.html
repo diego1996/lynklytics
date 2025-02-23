@@ -1,0 +1,130 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Mis Enlaces - Lynklytics{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Título con efecto -->
+    <h2 class="text-3xl font-bold text-white mb-6 text-center tracking-wide uppercase relative">
+        🔗 Mis Enlaces
+        <span class="absolute left-0 right-0 -bottom-2 h-1 bg-gradient-to-r from-blue-500 to-purple-500"></span>
+    </h2>
+
+    <!-- Filtros y Estadísticas -->
+    <div class="flex flex-col md:flex-row items-center justify-between mb-6 space-y-4 md:space-y-0">
+        <!-- Estadísticas -->
+        <div class="flex space-x-4">
+            <div class="bg-gray-100 p-4 rounded-lg shadow-lg text-center flex flex-col justify-center min-w-[150px]">
+                <h3 class="text-xl font-semibold text-gray-700">📈 Total de Enlaces</h3>
+                <p class="text-3xl font-bold text-blue-600">{{ total_links }}</p>
+            </div>
+            <div class="bg-gray-100 p-4 rounded-lg shadow-lg text-center flex flex-col justify-center min-w-[150px]">
+                <h3 class="text-xl font-semibold text-gray-700">📊 Total de Clics</h3>
+                <p class="text-3xl font-bold text-green-600">{{ total_clicks }}</p>
+            </div>
+        </div>
+        <!-- Filtro de búsqueda -->
+        <div class="w-full md:w-1/3">
+            <input type="text" id="search" placeholder="🔍 Buscar enlace..."
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+    </div>
+
+    <!-- Tabla de Enlaces -->
+    {% if enlaces %}
+    <div class="overflow-x-auto bg-white shadow-lg rounded-lg p-6">
+        <table class="min-w-full border-collapse table-auto">
+            <thead>
+            <tr class="bg-blue-500 text-white">
+                <th class="py-3 px-6 text-left">Código</th>
+                <th class="py-3 px-6 text-left">URL Original</th>
+                <th class="py-3 px-6 text-center">Clics</th>
+                <th class="py-3 px-6 text-center">Creado</th>
+                <th class="py-3 px-6 text-center">Acciones</th>
+            </tr>
+            </thead>
+            <tbody id="links-table">
+            {% for enlace in enlaces %}
+            <tr class="border-b hover:bg-gray-50 transition {% if enlace.click_count > 100 %}bg-yellow-100{% endif %}">
+                <td class="py-3 px-6 text-gray-700 font-semibold">{{ enlace.short_code }}</td>
+                <td class="py-3 px-6 text-gray-600">
+                    <a href="{{ enlace.original_url }}" target="_blank" class="text-blue-500 hover:underline">
+                        {{ enlace.original_url }}
+                    </a>
+                </td>
+                <td class="py-3 px-6 text-center text-gray-600 font-semibold {% if enlace.click_count > 100 %}text-red-600{% endif %}">
+                    {{ enlace.click_count }}
+                </td>
+                <td class="py-3 px-6 text-center text-gray-600">
+                    {{ enlace.created_at|date:"d/m/Y H:i" }}
+                </td>
+                <td class="py-3 px-6 text-center">
+                    <a href="{% url 'link_stats' enlace.pk %}"
+                       class="text-blue-600 hover:text-blue-800 transition">
+                        📊 Ver Estadísticas
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="mt-6 flex flex-wrap justify-center items-center space-x-2">
+        {% if enlaces.has_previous %}
+        <a href="?page=1" class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600">
+            ⏮️ Primera
+        </a>
+        <a href="?page={{ enlaces.previous_page_number }}"
+           class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600">
+            ◀️ Anterior
+        </a>
+        {% endif %}
+
+        <span class="px-4 py-2 bg-gray-300 rounded-lg shadow-md">
+          Página {{ enlaces.number }} de {{ enlaces.paginator.num_pages }}
+      </span>
+
+        {% if enlaces.has_next %}
+        <a href="?page={{ enlaces.next_page_number }}"
+           class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600">
+            Siguiente ▶️
+        </a>
+        <a href="?page={{ enlaces.paginator.num_pages }}"
+           class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600">
+            Última ⏭️
+        </a>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="text-center mt-12">
+        <p class="text-gray-700 text-lg">🚀 No tienes enlaces creados. Empieza a acortar URLs para verlos aquí.</p>
+        <a href="{% url 'shorten_url' %}"
+           class="mt-4 inline-block bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition">
+            ➕ Acortar mi Primer Enlace
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Botón Flotante para Acortar -->
+<a href="{% url 'shorten_url' %}"
+   class="fixed bottom-6 right-6 bg-white text-black px-5 py-3 rounded-full shadow-lg hover:bg-blue-700 transition text-lg flex items-center gap-2">
+    ➕ Acortar
+</a>
+
+<!-- Script para Filtrar Enlaces -->
+<script>
+    document.getElementById("search").addEventListener("keyup", function () {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll("#links-table tr");
+        rows.forEach(row => {
+            let url = row.cells[1].textContent.toLowerCase();
+            row.style.display = url.includes(filter) ? "" : "none";
+        });
+    });
+</script>
+{% endblock %}

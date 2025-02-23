@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Lynklytics</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Estilos Personalizados -->
+    <style>
+        /* Fondo con partículas */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            z-index: -1;
+        }
+
+        /* Contenedor del Login - Glassmorphism */
+        .login-container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 50px;
+            width: 100%;
+            max-width: 450px; /* Tamaño espacioso y cómodo */
+            text-align: center;
+            color: white;
+        }
+
+        /* Campos de entrada */
+        .input-field {
+            width: 100%;
+            padding: 14px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: 0.3s ease-in-out;
+        }
+
+        .input-field:focus {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Botón */
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(90deg, #2563eb, #1e40af);
+        }
+
+        /* Enlace */
+        .text-link {
+            color: #dbeafe;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .text-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Fondo animado con partículas -->
+<div id="particles-js"></div>
+
+<!-- Contenedor Principal -->
+<div class="flex justify-center items-center min-h-screen px-4">
+    <div class="login-container">
+        <h1 class="text-4xl font-extrabold">🔐 Iniciar Sesión</h1>
+        <p class="text-gray-200 mt-2">Accede a tu cuenta de <span class="text-blue-300">Lynklytics</span></p>
+
+        <form method="post" class="mt-6">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="text-red-300 mb-4">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div>
+                <input type="text" name="username" id="id_username" placeholder="Usuario o Email"
+                       class="input-field" required>
+                {{ form.username.errors }}
+            </div>
+
+            <div>
+                <input type="password" name="password" id="id_password" placeholder="Contraseña"
+                       class="input-field" required>
+                {{ form.password.errors }}
+            </div>
+
+            <button type="submit" class="btn-login mt-6">Ingresar</button>
+        </form>
+
+        <p class="mt-6 text-gray-200">
+            ¿No tienes cuenta? <a href="{% url 'login' %}" class="text-link">Regístrate</a>
+        </p>
+    </div>
+</div>
+
+<!-- Particles.js -->
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+    particlesJS("particles-js", {
+        "particles": {
+            "number": { "value": 100, "density": { "enable": true, "value_area": 800 } },
+            "color": { "value": "#ffffff" },
+            "shape": { "type": "circle" },
+            "opacity": { "value": 0.2, "random": false },
+            "size": { "value": 4, "random": true },
+            "line_linked": {
+                "enable": true,
+                "distance": 150,
+                "color": "#ffffff",
+                "opacity": 0.4,
+                "width": 1
+            },
+            "move": {
+                "enable": true,
+                "speed": 2,
+                "direction": "none",
+                "out_mode": "out",
+                "bounce": false
+            }
+        },
+        "interactivity": {
+            "detect_on": "canvas",
+            "events": {
+                "onhover": { "enable": true, "mode": "repulse" },
+                "onclick": { "enable": true, "mode": "push" }
+            },
+            "modes": {
+                "repulse": { "distance": 100, "duration": 0.4 },
+                "push": { "particles_nb": 4 }
+            }
+        },
+        "retina_detect": true
+    });
+</script>
+
+</body>
+</html>

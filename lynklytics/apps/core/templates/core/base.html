@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Lynklytics{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Estilos para el modo oscuro */
+        .dark-mode {
+            background-color: #1a202c;
+            color: white;
+        }
+
+        /* Notificación */
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: red;
+            color: white;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 50%;
+        }
+
+        /* Menú hamburguesa */
+        .menu {
+            display: none;
+        }
+
+        .menu.open {
+            display: block;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gradient-to-br from-blue-600 to-purple-700 min-h-screen flex flex-col items-center px-4">
+
+<!-- HEADER -->
+<header class="w-full max-w-6xl mx-auto py-6 flex justify-between items-center text-white fade-in relative">
+    <div class="text-3xl font-bold tracking-wide cursor-pointer hover:scale-105 transition-transform">
+        Lynklytics
+    </div>
+
+    <!-- Menú de Navegación -->
+    <nav class="hidden md:flex space-x-6">
+        <a href="{% url 'shorten_url' %}" class="hover:text-gray-300"><i class="fas fa-home"></i> Home</a>
+        <a href="{% url 'my_links' %}" class="hover:text-gray-300"><i class="fas fa-link"></i> Mis Links</a>
+        <a href="{% url 'global_stats' %}" class="hover:text-gray-300"><i class="fas fa-chart-line"></i> Mis
+            Estadísticas</a>
+        <!--<a href="/admin" class="hover:text-gray-300"><i class="fas fa-tools"></i> Admin</a>-->
+    </nav>
+
+    <!-- Notificaciones -->
+    <div class="relative">
+        <i class="fas fa-bell text-xl cursor-pointer hover:text-gray-300" id="notification-icon"></i>
+        <span id="notification-count" class="notification-badge hidden">3</span>
+    </div>
+
+    {% if user.is_authenticated %}
+    <form action="{% url 'logout' %}" method="post" class="hidden md:inline-block">
+        {% csrf_token %}
+        <button type="submit" id="logout-btn"
+                class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-gray-100 transition">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </form>
+    {% else %}
+    <a href="{% url 'login' %}" id="login-btn"
+       class="hidden md:inline-block bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-gray-100 transition">
+        <i class="fas fa-sign-in-alt"></i> Login
+    </a>
+    {% endif %}
+
+
+    <!-- Menú Hamburguesa en Móvil -->
+    <button id="menu-toggle" class="md:hidden text-white text-2xl focus:outline-none">
+        <i class="fas fa-bars"></i>
+    </button>
+</header>
+
+<!-- Menú Responsive -->
+<nav id="mobile-menu" class="menu absolute top-16 left-0 w-full bg-blue-700 text-white py-4 text-center md:hidden">
+    <a href="{% url 'shorten_url' %}" class="block py-2 hover:bg-blue-600"><i class="fas fa-home"></i> Home</a>
+    <a href="{% url 'my_links' %}" class="block py-2 hover:bg-blue-600"><i class="fas fa-link"></i> Mis Links</a>
+    <a href="{% url 'global_stats' %}" class="block py-2 hover:bg-blue-600"><i class="fas fa-chart-line"></i> Mis
+        Estadísticas</a>
+    {% if user.is_authenticated %}
+    <a href="/admin" class="block py-2 hover:bg-blue-600"><i class="fas fa-tools"></i> Admin</a>
+    <a href="{% url 'logout' %}" id="mobile-logout-btn"
+       class="block py-2 bg-white text-blue-600 rounded-md mt-2 mx-4 hover:bg-gray-200"><i
+            class="fas fa-sign-in-alt"></i> Logout</a>
+    {% else %}
+    <a href="{% url 'login' %}" id="mobile-login-btn"
+       class="block py-2 bg-white text-blue-600 rounded-md mt-2 mx-4 hover:bg-gray-200"><i
+            class="fas fa-sign-in-alt"></i> Login</a>
+    {% endif %}
+</nav>
+
+<!-- CONTENIDO PRINCIPAL -->
+<main class="w-full flex-grow flex flex-col items-center justify-center fade-in">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- FOOTER -->
+<footer class="mt-20 py-6 text-white text-center">
+    <div class="flex justify-center space-x-4 text-xl">
+        <a href="#" class="hover:text-gray-300"><i class="fab fa-twitter"></i></a>
+        <a href="https://co.linkedin.com/in/diegoalejandroasenciocuellar" class="hover:text-gray-300"><i
+                class="fab fa-linkedin"></i></a>
+        <a href="https://github.com/diego1996" class="hover:text-gray-300"><i class="fab fa-github"></i></a>
+    </div>
+    <p class="text-lg mt-4">Developed by <span class="font-semibold">@diego1996</span></p>
+</footer>
+
+{% block extra_js %}
+<script>
+    // Modo Oscuro Automático
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark-mode');
+    }
+
+    // Notificaciones (simulación)
+    const notificationIcon = document.getElementById("notification-icon");
+    const notificationCount = document.getElementById("notification-count");
+    let newNotifications = 3;
+
+    function checkNotifications() {
+        if (newNotifications > 0) {
+            notificationCount.classList.remove("hidden");
+            notificationCount.innerText = newNotifications;
+        } else {
+            notificationCount.classList.add("hidden");
+        }
+    }
+
+    notificationIcon.addEventListener("click", function () {
+        alert("Tienes " + newNotifications + " nuevas notificaciones.");
+        newNotifications = 0;
+        checkNotifications();
+    });
+
+    checkNotifications();
+
+    // Menú Hamburguesa
+    const menuToggle = document.getElementById("menu-toggle");
+    const mobileMenu = document.getElementById("mobile-menu");
+
+    menuToggle.addEventListener("click", function () {
+        mobileMenu.classList.toggle("open");
+    });
+</script>
+{% endblock %}
+</body>
+</html>

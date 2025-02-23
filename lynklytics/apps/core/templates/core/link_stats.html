@@ -1,0 +1,170 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Estadísticas - {{ link.short_code }} - Lynklytics{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js para gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Leaflet.js para mapas -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Título principal -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-extrabold text-white">📊 Estadísticas</h1>
+        <p class="mt-2 text-lg text-white">
+            Análisis detallado para el enlace <span class="font-bold">{{ link.short_code }}</span>
+        </p>
+    </div>
+
+    <!-- Grid de Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Total de Clics -->
+        <div class="bg-white rounded-xl shadow-xl p-6 text-center">
+            <h3 class="text-xl font-bold text-gray-700">📈 Total de Clics</h3>
+            <p class="text-4xl font-bold text-blue-600">{{ total_clicks }}</p>
+        </div>
+
+        <!-- Total de Países Únicos -->
+        <div class="bg-white rounded-xl shadow-xl p-6 text-center">
+            <h3 class="text-xl font-bold text-gray-700">🌍 Países Únicos</h3>
+            <p class="text-4xl font-bold text-green-600">{{ unique_countries }}</p>
+        </div>
+
+        <!-- Total de Dispositivos Únicos -->
+        <div class="bg-white rounded-xl shadow-xl p-6 text-center">
+            <h3 class="text-xl font-bold text-gray-700">📱 Dispositivos Únicos</h3>
+            <p class="text-4xl font-bold text-purple-600">{{ unique_devices }}</p>
+        </div>
+    </div>
+
+    <!-- Grid de Gráficos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Gráfico de clics por día -->
+        <div class="bg-white rounded-xl shadow-xl p-8">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Clics Diarios</h2>
+            <canvas id="clicksChart"></canvas>
+        </div>
+
+        <!-- Gráfico de clics por país -->
+        <div class="bg-white rounded-xl shadow-xl p-8">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Clics por País</h2>
+            <canvas id="countryChart"></canvas>
+        </div>
+
+        <!-- Mapa de ubicación -->
+        <div class="bg-white rounded-xl shadow-xl p-8">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Mapa de Clics</h2>
+            <div id="map" class="w-full h-80 rounded-lg"></div>
+        </div>
+
+        <!-- Gráfico de dispositivos -->
+        <div class="bg-white rounded-xl shadow-xl p-8">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Dispositivos Utilizados</h2>
+            <canvas id="deviceChart"></canvas>
+        </div>
+
+        <!-- Gráfico de navegadores -->
+        <div class="bg-white rounded-xl shadow-xl p-8">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Navegadores Más Usados</h2>
+            <canvas id="browserChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- PASAMOS LOS DATOS JSON DE FORMA SEGURA -->
+{{ daily_clicks|json_script:"clicks-data" }}
+{{ country_clicks|json_script:"country-data" }}
+{{ device_clicks|json_script:"device-data" }}
+{{ browser_clicks|json_script:"browser-data" }}
+{{ map_clicks|json_script:"map-data" }}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Gráfico de Clics Diarios
+        const clicksData = JSON.parse(document.getElementById("clicks-data").textContent);
+        if (clicksData.length > 0) {
+            new Chart(document.getElementById("clicksChart"), {
+                type: "line",
+                data: {
+                    labels: clicksData.map(d => d.day),
+                    datasets: [{
+                        label: "Clics",
+                        data: clicksData.map(d => d.click_count),
+                        borderColor: "#3B82F6",
+                        backgroundColor: "rgba(59, 130, 246, 0.2)",
+                        borderWidth: 2,
+                        pointRadius: 5,
+                        pointBackgroundColor: "#1E3A8A",
+                        tension: 0.3
+                    }]
+                }
+            });
+        }
+
+        // Gráfico de Clics por País
+        const countryData = JSON.parse(document.getElementById("country-data").textContent);
+        if (Object.keys(countryData).length > 0) {
+            new Chart(document.getElementById("countryChart"), {
+                type: "bar",
+                data: {
+                    labels: Object.keys(countryData),
+                    datasets: [{
+                        label: "Clics",
+                        data: Object.values(countryData),
+                        backgroundColor: "rgba(75, 192, 192, 0.5)",
+                        borderColor: "#4BC0C0",
+                        borderWidth: 1
+                    }]
+                }
+            });
+        }
+
+        // Mapa de clics
+        const map = L.map('map').setView([20, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        const mapClicks = JSON.parse(document.getElementById("map-data").textContent);
+        mapClicks.forEach(click => {
+            L.marker([click.latitude, click.longitude])
+                .addTo(map)
+                .bindPopup(`<b>${click.country}</b><br>${click.count} clics.`);
+        });
+
+        // Gráfico de dispositivos
+        const deviceData = JSON.parse(document.getElementById("device-data").textContent);
+        new Chart(document.getElementById("deviceChart"), {
+            type: "doughnut",
+            data: {
+                labels: Object.keys(deviceData),
+                datasets: [{
+                    data: Object.values(deviceData),
+                    backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"]
+                }]
+            }
+        });
+
+        // Gráfico de navegadores
+        const browserData = JSON.parse(document.getElementById("browser-data").textContent);
+        new Chart(document.getElementById("browserChart"), {
+            type: "pie",
+            data: {
+                labels: Object.keys(browserData),
+                datasets: [{
+                    data: Object.values(browserData),
+                    backgroundColor: ["#4CAF50", "#FF9800", "#3F51B5", "#E91E63", "#795548"]
+                }]
+            }
+        });
+    });
+</script>
+{% endblock %}
