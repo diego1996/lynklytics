@@ -1,1 +1,1 @@
-web: cd lynklytics && python manage migrate && gunicorn config.wsgi --log-file -
+web: cd lynklytics && python manage.py migrate && gunicorn config.wsgi --log-file -
