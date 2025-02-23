@@ -1,1 +1,1 @@
-web: gunicorn linklytics.config.wsgi --log-file -
+web: cd lynklytics && gunicorn config.wsgi --log-file -
